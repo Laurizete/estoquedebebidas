@@ -1,6 +1,6 @@
-// ==========================================================================
+
 // 1. GERENCIADOR DO FLUXO DE AUTENTICAÇÃO (LOGIN / LOGOUT)
-// ==========================================================================
+/
 function handleLogin(event) {
     event.preventDefault(); // Impede o recarregamento padrão da página
 
@@ -22,9 +22,9 @@ function handleLogout() {
     document.getElementById('view-login').classList.add('active-view');
 }
 
-// ==========================================================================
+
 // 2. GERENCIADOR DE NAVEGAÇÃO PRINCIPAL DO SCRIPT SPA
-// ==========================================================================
+
 function navigate(viewName) {
     // Remove classe ativa de todas as opções da barra lateral
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
@@ -50,9 +50,9 @@ function navigate(viewName) {
     }
 }
 
-// ==========================================================================
+
 // 3. ALTERNADOR DE SUB-ABAS INTERNAS (TELA DE CADASTRO)
-// ==========================================================================
+
 function switchFormTab(targetForm) {
     const btnCliente = document.getElementById('tab-btn-cliente');
     const btnEstoque = document.getElementById('tab-btn-estoque');
@@ -79,9 +79,9 @@ function goToAddProduct() {
     switchFormTab('estoque');
 }
 
-// ==========================================================================
+
 // 4. MÁSCARA AUTOMÁTICA DE TELEFONE CELULAR
-// ==========================================================================
+
 document.getElementById('phone-field').addEventListener('input', (e) => {
     let value = e.target.value.replace(/\D/g, ''); 
     let formatted = '';
