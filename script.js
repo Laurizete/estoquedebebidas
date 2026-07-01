@@ -1,19 +1,20 @@
 
 // 1. GERENCIADOR DO FLUXO DE AUTENTICAÇÃO (LOGIN / LOGOUT)
-/
+
 function handleLogin(event) {
-    event.preventDefault(); // Impede o recarregamento padrão da página
+    event.preventDefault();
 
-    // Oculta a tela de Login
-    document.getElementById('view-login').classList.remove('active-view');
-    
-    // Torna visível o container principal do Dashboard
-    document.getElementById('main-system-container').classList.add('active-view');
+    const usuario = document.getElementById("usuario").value;
+    const senha = document.getElementById("senha").value;
 
-    // Inicializa carregando a tela padrão do sistema (Clientes)
-    navigate('clientes');
+    if (usuario === "admin" && senha === "1234") {
+        document.getElementById('view-login').classList.remove('active-view');
+        document.getElementById('main-system-container').classList.add('active-view');
+        navigate('clientes');
+    } else {
+        alert("Usuário ou senha incorretos!");
+    }
 }
-
 function handleLogout() {
     // Esconde o painel administrativo do sistema
     document.getElementById('main-system-container').classList.remove('active-view');
