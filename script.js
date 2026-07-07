@@ -7,7 +7,7 @@ function handleLogin(event) {
     const usuario = document.getElementById("usuario").value;
     const senha = document.getElementById("senha").value;
 
-    if (usuario === "admin" && senha === "1234") {
+    if (usuario === "teste" && senha === "1234") {
         document.getElementById('view-login').classList.remove('active-view');
         document.getElementById('main-system-container').classList.add('active-view');
         navigate('clientes');
