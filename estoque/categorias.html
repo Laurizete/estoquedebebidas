@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorias - Depósito de Bebidas JP</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container active-view">
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-boxes-stacked brand-icon"></i>
+                <div class="brand-text">
+                    <h3>Depósito</h3>
+                    <p>de Bebidas JP</p>
+                </div>
+            </div>
+            <nav class="sidebar-menu">
+                <a class="menu-item" href="index.html"><i class="fa-solid fa-house"></i> Dashboard</a>
+                <a class="menu-item" href="clientes.html"><i class="fa-solid fa-users"></i> Clientes (Cadastro)</a>
+                <a class="menu-item" href="estoque.html"><i class="fa-solid fa-box"></i> Estoque (Lista)</a>
+                <a class="menu-item active" href="categorias.html"><i class="fa-solid fa-tags"></i> Categorias</a>
+                <a class="menu-item" href="relatorios.html"><i class="fa-solid fa-chart-line"></i> Relatórios</a>
+                <a class="menu-item logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <h1 id="page-title">Categorias</h1>
+                <div class="user-dropdown">
+                    <i class="fa-solid fa-circle-user user-icon"></i>
+                    <span>Administrador</span>
+                </div>
+            </header>
+
+            <div id="view-categorias" class="app-view active-view">
+                <div class="toolbar" style="margin-bottom: 20px; display:flex; justify-content: flex-end;">
+                    <button class="btn btn-primary" onclick="adicionarCategoriaPrompt()">
+                        <i class="fa-solid fa-plus"></i> Nova Categoria
+                    </button>
+                </div>
+
+                <div class="table-container" style="background: #fff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow-x: auto; width: 100%;">
+                    <table class="stock-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
+                                <th style="padding: 12px 16px; color: #475569; font-weight: 600;">Ícone</th>
+                                <th style="padding: 12px 16px; color: #475569; font-weight: 600;">Nome da Categoria</th>
+                                <th style="padding: 12px 16px; color: #475569; font-weight: 600;">Produtos Atrelados</th>
+                                <th style="padding: 12px 16px; color: #475569; font-weight: 600;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

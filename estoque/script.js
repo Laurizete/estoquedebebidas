@@ -1,7 +1,6 @@
 // =========================================================================
-// 1. ESTRUTURA DE BANCO DE DADOS LOCAL (LOCALSTORAGE)
+// 1. BANCO DE DADOS LOCAL CENTRALIZADO (LOCALSTORAGE)
 // =========================================================================
-
 const dadosIniciaisProdutos = [
     { nome: "Cerveja Skol 600ml", categoria: "Alcoólica", marca: "Skol", preco: 6.00, qtd: 100, minimo: 20 },
     { nome: "Coca-Cola 2L", categoria: "Bebida Gaseificada", marca: "Coca-Cola", preco: 7.50, qtd: 60, minimo: 15 },
@@ -23,9 +22,8 @@ function salvarDados() {
 }
 
 // =========================================================================
-// 2. SISTEMA DE AUTENTICAÇÃO (LOGIN E LOGOUT)
+// 2. CONTROLE DE SESSÃO
 // =========================================================================
-
 function handleLogin(event) {
     event.preventDefault();
     const usuario = document.getElementById("usuario").value;
@@ -42,48 +40,7 @@ function handleLogout() {
     window.location.href = "login.html";
 }
 
-// =========================================================================
-// 3. GERENCIADOR DE NAVEGAÇÃO PRINCIPAL (SPA)
-// =========================================================================
-
-function navigate(viewName) {
-    document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-    document.querySelectorAll('.app-view').forEach(view => view.classList.remove('active-view'));
-
-    const title = document.getElementById('page-title');
-
-    const views = {
-        'dashboard': { menuId: null, viewId: 'view-dashboard', title: 'Dashboard' },
-        'clientes': { menuId: 'menu-clientes', viewId: 'view-cadastro', title: 'Cadastro' },
-        'estoque': { menuId: 'menu-estoque', viewId: 'view-estoque-lista', title: 'Estoque' },
-        'categorias': { menuId: 'menu-categorias', viewId: 'view-categorias', title: 'Categorias' },
-        'relatorios': { menuId: 'menu-relatorios', viewId: 'view-relatorios', title: 'Relatórios' }
-    };
-
-    const target = views[viewName];
-
-    if (target) {
-        if (target.menuId) {
-            const menuEl = document.getElementById(target.menuId);
-            if (menuEl) menuEl.classList.add('active');
-        } else {
-            const dashMenu = Array.from(document.querySelectorAll('.menu-item')).find(item => item.getAttribute('onclick').includes('dashboard'));
-            if (dashMenu) dashMenu.classList.add('active');
-        }
-
-        const viewEl = document.getElementById(target.viewId);
-        if (viewEl) viewEl.classList.add('active-view');
-        
-        title.innerText = target.title;
-
-        if (viewName === 'clientes') {
-            switchFormTab('cliente');
-        }
-
-        atualizarPaineisDoSistema();
-    }
-}
-
+// Alternador de abas internas (somente na clientes.html)
 function switchFormTab(targetForm) {
     const btnCliente = document.getElementById('tab-btn-cliente');
     const btnEstoque = document.getElementById('tab-btn-estoque');
@@ -106,69 +63,58 @@ function switchFormTab(targetForm) {
     }
 }
 
-function goToAddProduct() {
-    navigate('clientes');
-    switchFormTab('estoque');
-}
-
 // =========================================================================
-// 4. RENDERIZADORES E PROCESSADORES DE DADOS DINÂMICOS
+// 3. ENGENHARIA DE CORRESPONDÊNCIA E RENDERIZAÇÃO
 // =========================================================================
+function identificarECarregarPaginaAtual() {
+    const path = window.location.pathname;
+    const pagina = path.substring(path.lastIndexOf("/") + 1);
 
-function atualizarPaineisDoSistema() {
-    renderizarDashboard();
-    renderizarEstoque();
-    renderizarCategorias();
-    renderizarClientes();
-    atualizarSelectsDeCategoria();
-}
-
-// --- DASHBOARD ---
-function renderizarDashboard() {
-    let totalQtd = 0;
-    let totalValor = 0;
-    let alertasCriticos = 0;
-
-    produtos.forEach(p => {
-        totalQtd += parseInt(p.qtd);
-        totalValor += (p.preco * p.qtd);
-        if (parseInt(p.qtd) <= parseInt(p.minimo)) {
-            alertasCriticos++;
+    if (pagina === "index.html" || pagina === "") {
+        renderizarDashboard();
+    } else if (pagina === "clientes.html") {
+        atualizarSelectsDeCategoria();
+        renderizarClientes();
+        
+        // Verifica se veio redirecionado para abrir direto na aba de estoque
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('aba') === 'estoque') {
+            switchFormTab('estoque');
         }
-    });
-
-    const dashContainer = document.getElementById('view-dashboard');
-    if (!dashContainer) return;
-
-    dashContainer.querySelector('.blue-card h2').innerText = `${totalQtd} un.`;
-    dashContainer.querySelector('.green-card h2').innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    
-    const alertaCard = dashContainer.querySelectorAll('.summary-card')[2];
-    if (alertaCard) {
-        alertaCard.querySelector('h2').innerText = `${alertasCriticos} Itens`;
-        alertaCard.style.borderLeft = alertasCriticos > 0 ? "5px solid #df2121" : "5px solid #4caf50";
+    } else if (pagina === "estoque.html") {
+        atualizarSelectsDeCategoria();
+        renderizarEstoque();
+        document.getElementById('category-filter').addEventListener('change', renderizarEstoque);
+    } else if (pagina === "categorias.html") {
+        renderizarCategorias();
     }
 }
 
-// --- ESTOQUE (TABELA FILTRADA APENAS POR CATEGORIA) ---
+function renderizarDashboard() {
+    let totalQtd = 0; let totalValor = 0; let alertasCriticos = 0;
+    produtos.forEach(p => {
+        totalQtd += parseInt(p.qtd); totalValor += (p.preco * p.qtd);
+        if (parseInt(p.qtd) <= parseInt(p.minimo)) alertasCriticos++;
+    });
+
+    if (document.getElementById('dash-total-qtd')) {
+        document.getElementById('dash-total-qtd').innerText = `${totalQtd} un.`;
+        document.getElementById('dash-total-valor').innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+        document.getElementById('dash-total-alertas').innerText = `${alertasCriticos} Itens`;
+        document.getElementById('dash-alerta-card').style.borderLeft = alertasCriticos > 0 ? "5px solid #df2121" : "5px solid #4caf50";
+    }
+}
+
 function renderizarEstoque() {
-    const tabelaBody = document.querySelector('#view-estoque-lista .stock-table tbody');
+    const tabelaBody = document.querySelector('.stock-table tbody');
     if (!tabelaBody) return;
 
     tabelaBody.innerHTML = '';
-    
     const filtroCategoria = document.getElementById('category-filter')?.value || 'Todas';
-
-    let totalQtd = 0;
-    let totalValor = 0;
-    let totalItensFiltrados = 0;
+    let totalQtd = 0; let totalValor = 0; let totalItensFiltrados = 0;
 
     produtos.forEach((p, index) => {
-        const atendeCategoria = (filtroCategoria === 'Todas' || p.categoria === filtroCategoria);
-
-        if (!atendeCategoria) {
-            return; 
-        }
+        if (filtroCategoria !== 'Todas' && p.categoria !== filtroCategoria) return;
 
         totalItensFiltrados++;
         totalQtd += parseInt(p.qtd);
@@ -177,7 +123,6 @@ function renderizarEstoque() {
 
         let statusBadge = `<span class="status-badge status-in-stock">Em estoque</span>`;
         let textQtyClass = "text-qty-green";
-        
         if (parseInt(p.qtd) === 0) {
             statusBadge = `<span class="status-badge status-critical">Sem Estoque</span>`;
             textQtyClass = "text-qty-red";
@@ -208,53 +153,29 @@ function renderizarEstoque() {
         tabelaBody.appendChild(tr);
     });
 
-    if (totalItensFiltrados === 0) {
-        tabelaBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #94a3b8; padding: 20px;">Nenhum produto cadastrado nesta categoria.</td></tr>`;
-    }
-
-    const totalItensLabel = document.querySelector('#view-estoque-lista .table-footer .total-items');
-    if (totalItensLabel) totalItensLabel.innerText = `Total de itens: ${totalItensFiltrados}`;
-
-    const cardsRodape = document.querySelectorAll('#view-estoque-lista .table-footer .summary-card h2');
-    if (cardsRodape.length >= 2) {
-        cardsRodape[0].innerText = totalQtd;
-        cardsRodape[1].innerText = totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    if (document.getElementById('rodape-total-un')) {
+        document.querySelector('.total-items').innerText = `Total de itens: ${totalItensFiltrados}`;
+        document.getElementById('rodape-total-un').innerText = totalQtd;
+        document.getElementById('rodape-total-rs').innerText = totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
     }
 }
 
-// --- CATEGORIAS (TABELA) ---
 function renderizarCategorias() {
-    const viewCat = document.getElementById('view-categorias');
-    if (!viewCat) return;
-    
-    const tabelaBody = viewCat.querySelector('.stock-table tbody');
+    const tabelaBody = document.querySelector('.stock-table tbody');
     if (!tabelaBody) return;
-
     tabelaBody.innerHTML = '';
 
     categorias.forEach((cat, index) => {
-        const qtdProdutosAtrelados = produtos.filter(p => p.categoria === cat).length;
-
+        const qtdAtrelados = produtos.filter(p => p.categoria === cat).length;
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>📁</td>
-            <td><strong>${cat}</strong></td>
-            <td>${qtdProdutosAtrelados} produtos</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-action btn-delete" onclick="removerCategoria(${index})"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </td>
-        `;
+        tr.innerHTML = `<td>📁</td><td><strong>${cat}</strong></td><td>${qtdAtrelados} produtos</td><td><div class="action-buttons"><button class="btn-action btn-delete" onclick="removerCategoria(${index})"><i class="fa-solid fa-trash"></i></button></div></td>`;
         tabelaBody.appendChild(tr);
     });
 }
 
-// --- CLIENTES (TABELA) ---
 function renderizarClientes() {
     const tabelaBody = document.querySelector('#tabela-clientes tbody');
     if (!tabelaBody) return;
-
     tabelaBody.innerHTML = '';
 
     if (clientes.length === 0) {
@@ -264,185 +185,103 @@ function renderizarClientes() {
 
     clientes.forEach((c, index) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><strong>${c.nome}</strong></td>
-            <td>${c.telefone}</td>
-            <td>${c.endereco}</td>
-            <td>${c.email}</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-action btn-delete" onclick="removerCliente(${index})"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </td>
-        `;
+        tr.innerHTML = `<td><strong>${c.nome}</strong></td><td>${c.telefone}</td><td>${c.endereco}</td><td>${c.email}</td><td><div class="action-buttons"><button class="btn-action btn-delete" onclick="removerCliente(${index})"><i class="fa-solid fa-trash"></i></button></div></td>`;
         tabelaBody.appendChild(tr);
     });
 }
 
 function atualizarSelectsDeCategoria() {
-    const selectForm = document.querySelector('#section-form-estoque select');
+    const selectForm = document.getElementById('form-produto-categoria');
     const selectFiltro = document.getElementById('category-filter');
 
     if (selectForm) {
-        const valorSelecionadoAnteriormente = selectForm.value;
         selectForm.innerHTML = '<option value="" disabled selected>Selecione a categoria</option>';
-        categorias.forEach(cat => {
-            selectForm.innerHTML += `<option value="${cat}">${cat}</option>`;
-        });
-        if(valorSelecionadoAnteriormente) selectForm.value = valorSelecionadoAnteriormente;
+        categorias.forEach(cat => { selectForm.innerHTML += `<option value="${cat}">${cat}</option>`; });
     }
-
     if (selectFiltro) {
-        const valorFiltroAnterior = selectFiltro.value;
+        const antigoValor = selectFiltro.value;
         selectFiltro.innerHTML = '<option value="Todas">Todas</option>';
-        categorias.forEach(cat => {
-            selectFiltro.innerHTML += `<option value="${cat}">${cat}</option>`;
-        });
-        if(valorFiltroAnterior) selectFiltro.value = valorFiltroAnterior;
+        categorias.forEach(cat => { selectFiltro.innerHTML += `<option value="${cat}">${cat}</option>`; });
+        if(antigoValor) selectFiltro.value = antigoValor;
     }
 }
 
 // =========================================================================
-// 5. PROCESSAMENTO DE FORMULÁRIOS (CADASTROS REAIS)
+// 4. TRATAMENTO DE INPUTS E PERSISTÊNCIA
 // =========================================================================
-
 function handleFormAction(event, entity) {
     event.preventDefault();
     const campos = event.target.elements;
 
     if (entity === 'Cliente') {
-        const novoCliente = {
-            nome: campos[0].value,
-            telefone: document.getElementById('phone-field').value,
-            endereco: campos[2].value,
-            email: campos[3].value || 'Não informado'
-        };
-        clientes.push(novoCliente);
+        clientes.push({ nome: campos[0].value, telefone: document.getElementById('phone-field').value, endereco: campos[2].value, email: campos[3].value || 'Não informado' });
         salvarDados();
-        alert(`Cliente "${novoCliente.nome}" cadastrado com sucesso!`);
-        
+        alert('Cliente cadastrado com sucesso!');
+        renderizarClientes();
     } else if (entity === 'Produto') {
-        const novoProduto = {
-            nome: campos[0].value,
-            categoria: campos[1].value,
-            marca: campos[2].value,
-            preco: parseFloat(campos[3].value),
-            qtd: parseInt(campos[4].value),
-            minimo: parseInt(campos[5].value)
-        };
-        produtos.push(novoProduto);
+        produtos.push({ nome: campos[0].value, categoria: campos[1].value, marca: campos[2].value, preco: parseFloat(campos[3].value), qtd: parseInt(campos[4].value), minimo: parseInt(campos[5].value) });
         salvarDados();
-        alert(`Produto "${novoProduto.nome}" adicionado ao estoque!`);
+        alert('Produto adicionado ao estoque!');
     }
-
     event.target.reset();
-    atualizarPaineisDoSistema();
 }
 
 function adicionarCategoriaPrompt() {
-    const novaCat = prompt("Digite o nome da nova categoria de bebidas:");
+    const novaCat = prompt("Digite o nome da nova categoria:");
     if (novaCat && novaCat.trim() !== "") {
-        const nomeFormatado = novaCat.trim();
-        if (categorias.includes(nomeFormatado)) {
-            alert("Esta categoria já existe!");
-            return;
-        }
-        categorias.push(nomeFormatado);
+        if (categorias.includes(novaCat.trim())) return alert("Categoria já existente.");
+        categorias.push(novaCat.trim());
         salvarDados();
-        atualizarPaineisDoSistema();
+        identificarECarregarPaginaAtual();
     }
 }
-
-// =========================================================================
-// 6. FUNÇÕES DE EXCLUSÃO DE DADOS
-// =========================================================================
 
 function removerProduto(index) {
-    if (confirm(`Deseja realmente excluir o produto "${produtos[index].nome}"?`)) {
-        produtos.splice(index, 1);
-        salvarDados();
-        atualizarPaineisDoSistema();
-    }
+    if (confirm('Excluir produto?')) { produtos.splice(index, 1); salvarDados(); renderizarEstoque(); }
+}
+function removerCategoria(index) {
+    if (confirm('Excluir categoria?')) { categorias.splice(index, 1); salvarDados(); renderizarCategorias(); }
+}
+// Corrigido o escopo global da remoção do cliente
+window.removerCliente = function(index) {
+    if (confirm('Excluir cliente?')) { clientes.splice(index, 1); salvarDados(); renderizarClientes(); }
 }
 
 // =========================================================================
-// 7. GERADOR DE RELATÓRIOS PARA IMPRESSÃO / PDF (CORRIGIDO)
+// 5. RELATÓRIOS SEGUROS
 // =========================================================================
-
 function gerarRelatorioEstoque() {
-    const janelaRelatorio = window.open('', '_blank');
-    let htmlContent = "<h2>Relatório de Estoque</h2><table border='1' width='100%'><thead><tr><th>Produto</th><th>Categoria</th><th>Marca</th><th>Preço</th><th>Qtd</th></tr></thead><tbody>";
-    
-    produtos.forEach(p => {
-        htmlContent += "<tr><td>" + p.nome + "</td><td>" + p.categoria + "</td><td>" + p.marca + "</td><td>R$ " + p.preco.toFixed(2) + "</td><td>" + p.qtd + "</td></tr>";
-    });
-
-    htmlContent += "</tbody></table><script>window.onload=function(){window.print();}</script>";
-    janelaRelatorio.document.write(htmlContent);
-    janelaRelatorio.document.close();
+    const win = window.open('', '_blank');
+    let html = "<h2>Relatório de Estoque</h2><table border='1' width='100%'><thead><tr><th>Produto</th><th>Categoria</th><th>Preço</th><th>Qtd</th></tr></thead><tbody>";
+    produtos.forEach(p => { html += `<tr><td>${p.nome}</td><td>${p.categoria}</td><td>R$ ${p.preco.toFixed(2)}</td><td>${p.qtd}</td></tr>`; });
+    html += "</tbody></table><script>window.onload=function(){window.print();}</script>";
+    win.document.write(html); win.document.close();
 }
 
 function gerarRelatorioClientes() {
-    const janelaRelatorio = window.open('', '_blank');
-    let htmlContent = "<h2>Relatório de Clientes</h2><table border='1' width='100%'><thead><tr><th>Nome</th><th>Telefone</th><th>Endereço</th><th>E-mail</th></tr></thead><tbody>";
-    
-    clientes.forEach(c => {
-        htmlContent += "<tr><td>" + c.nome + "</td><td>" + c.telefone + "</td><td>" + c.endereco + "</td><td>" + c.email + "</td></tr>";
-    });
-
-    htmlContent += "</tbody></table><script>window.onload=function(){window.print();}</script>";
-    janelaRelatorio.document.write(htmlContent);
-    janelaRelatorio.document.close();
-}
-
-function removerCategoria(index) {
-    if (confirm(`Deseja remover a categoria "${categorias[index]}"?\nOs produtos existentes não serão excluídos.`)) {
-        categorias.splice(index, 1);
-        salvarDados();
-        atualizarPaineisDoSistema();
-    }
-}
-
-function removerCliente(index) {
-    if (confirm(`Deseja realmente excluir o cliente "${clientes[index].nome}"?`)) {
-        clientes.splice(index, 1);
-        salvarDados();
-        atualizarPaineisDoSistema();
-    }
+    const win = window.open('', '_blank');
+    let html = "<h2>Relatório de Clientes</h2><table border='1' width='100%'><thead><tr><th>Nome</th><th>Telefone</th><th>Endereço</th></tr></thead><tbody>";
+    clientes.forEach(c => { html += `<tr><td>${c.nome}</td><td>${c.telefone}</td><td>${c.endereco}</td></tr>`; });
+    html += "</tbody></table><script>window.onload=function(){window.print();}</script>";
+    win.document.write(html); win.document.close();
 }
 
 // =========================================================================
-// 8. CONFIGURAÇÕES DE EVENTOS E INICIALIZAÇÃO
+// 6. DISPARADORES INICIAIS
 // =========================================================================
-
 const phoneField = document.getElementById('phone-field');
 if (phoneField) {
     phoneField.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/\D/g, ''); 
-        let formatted = '';
+        let value = e.target.value.replace(/\D/g, ''); let formatted = '';
         if (value.length > 0) {
             formatted = `(${value.substring(0, 2)}`;
             if (value.length > 2) {
                 formatted += `) ${value.substring(2, 7)}`;
-                if (value.length > 7) {
-                    formatted += `-${value.substring(7, 11)}`;
-                }
+                if (value.length > 7) formatted += `-${value.substring(7, 11)}`;
             }
         }
         e.target.value = formatted;
     });
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('main-system-container')) {
-        const btnCat = document.querySelector('#view-categorias .btn-primary');
-        if (btnCat) btnCat.setAttribute('onclick', 'adicionarCategoriaPrompt()');
-
-        const selectFiltro = document.getElementById('category-filter');
-        if (selectFiltro) {
-            selectFiltro.addEventListener('change', renderizarEstoque);
-        }
-
-        navigate('dashboard');
-    }
-});
+window.addEventListener('DOMContentLoaded', identificarECarregarPaginaAtual);

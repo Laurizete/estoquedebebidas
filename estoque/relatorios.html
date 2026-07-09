@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Depósito de Bebidas JP</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container active-view">
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-boxes-stacked brand-icon"></i>
+                <div class="brand-text">
+                    <h3>Depósito</h3>
+                    <p>de Bebidas JP</p>
+                </div>
+            </div>
+            <nav class="sidebar-menu">
+                <a class="menu-item" href="index.html"><i class="fa-solid fa-house"></i> Dashboard</a>
+                <a class="menu-item" href="clientes.html"><i class="fa-solid fa-users"></i> Clientes (Cadastro)</a>
+                <a class="menu-item" href="estoque.html"><i class="fa-solid fa-box"></i> Estoque (Lista)</a>
+                <a class="menu-item" href="categorias.html"><i class="fa-solid fa-tags"></i> Categorias</a>
+                <a class="menu-item active" href="relatorios.html"><i class="fa-solid fa-chart-line"></i> Relatórios</a>
+                <a class="menu-item logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <h1 id="page-title">Relatórios</h1>
+                <div class="user-dropdown">
+                    <i class="fa-solid fa-circle-user user-icon"></i>
+                    <span>Administrador</span>
+                </div>
+            </header>
+
+            <div id="view-relatorios" class="app-view active-view">
+                <div class="forms-card" style="padding: 20px; margin-bottom: 20px;">
+                    <h3><i class="fa-solid fa-file-export"></i> Exportar Dados do Depósito</h3>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Selecione o tipo de relatório que deseja gerar:</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                        <button class="btn btn-secondary" onclick="gerarRelatorioEstoque()" style="padding: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
+                            <i class="fa-solid fa-boxes-stacked"></i> Posição de Estoque (Imprimir/PDF)
+                        </button>
+                        <button class="btn btn-secondary" onclick="gerarRelatorioClientes()" style="padding: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
+                            <i class="fa-solid fa-address-book"></i> Lista de Clientes (Imprimir/PDF)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
