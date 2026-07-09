@@ -1,5 +1,4 @@
-
-// 1. GERENCIADOR DO FLUXO DE AUTENTICAÇÃO (LOGIN / LOGOUT)
+// 1. SISTEMA DE AUTENTICAÇÃO (LOGIN E LOGOUT)
 
 function handleLogin(event) {
     event.preventDefault();
@@ -8,23 +7,20 @@ function handleLogin(event) {
     const senha = document.getElementById("senha").value;
 
     if (usuario === "teste" && senha === "1234") {
-        document.getElementById('view-login').classList.remove('active-view');
-        document.getElementById('main-system-container').classList.add('active-view');
-        navigate('clientes');
+        // Redireciona o usuário para o arquivo do sistema principal
+        window.location.href = "index.html";
     } else {
         alert("Usuário ou senha incorretos!");
     }
 }
+
 function handleLogout() {
-    // Esconde o painel administrativo do sistema
-    document.getElementById('main-system-container').classList.remove('active-view');
-    
-    // Traz de volta o card de login na tela
-    document.getElementById('view-login').classList.add('active-view');
+    // Redireciona o usuário de volta para a tela de login
+    window.location.href = "login.html";
 }
 
 
-// 2. GERENCIADOR DE NAVEGAÇÃO PRINCIPAL DO SCRIPT SPA
+// 2. GERENCIADOR DE NAVEGAÇÃO PRINCIPAL DO SISTEMA
 
 function navigate(viewName) {
     // Remove classe ativa de todas as opções da barra lateral
@@ -60,6 +56,9 @@ function switchFormTab(targetForm) {
     const formCliente = document.getElementById('section-form-cliente');
     const formEstoque = document.getElementById('section-form-estoque');
 
+    // Se esses elementos não existirem na página atual, sai da função
+    if (!btnCliente) return;
+
     btnCliente.classList.remove('active');
     btnEstoque.classList.remove('active');
     formCliente.classList.remove('active');
@@ -83,25 +82,36 @@ function goToAddProduct() {
 
 // 4. MÁSCARA AUTOMÁTICA DE TELEFONE CELULAR
 
-document.getElementById('phone-field').addEventListener('input', (e) => {
-    let value = e.target.value.replace(/\D/g, ''); 
-    let formatted = '';
+// Mudança: Verifica se o campo existe antes de adicionar o evento (evita erros no login.html)
+const phoneField = document.getElementById('phone-field');
+if (phoneField) {
+    phoneField.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, ''); 
+        let formatted = '';
 
-    if (value.length > 0) {
-        formatted = `(${value.substring(0, 2)}`;
-        if (value.length > 2) {
-            formatted += `) ${value.substring(2, 7)}`;
-            if (value.length > 7) {
-                formatted += `-${value.substring(7, 11)}`;
+        if (value.length > 0) {
+            formatted = `(${value.substring(0, 2)}`;
+            if (value.length > 2) {
+                formatted += `) ${value.substring(2, 7)}`;
+                if (value.length > 7) {
+                    formatted += `-${value.substring(7, 11)}`;
+                }
             }
         }
-    }
-    e.target.value = formatted;
-});
+        e.target.value = formatted;
+    });
+}
 
 // Manipulador padrão de envio de cadastros
 function handleFormAction(event, entity) {
     event.preventDefault();
-    alert(`${entity} salvo com sucesso no banco de dados simulado!`);
+    alert(`${entity} salvo com sucesso no banco de dados!`);
     event.target.reset();
 }
+// Executa automaticamente assim que a página index.html termina de carregar
+window.addEventListener('DOMContentLoaded', () => {
+    // Verifica se estamos na página do sistema (onde o menu-clientes existe)
+    if (document.getElementById('menu-clientes')) {
+        navigate('clientes');
+    }
+});
