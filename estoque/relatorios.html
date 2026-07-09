@@ -28,18 +28,35 @@
         </aside>
 
         <main class="main-content">
-            <header class="main-header">
-                <h1 id="page-title">Relatórios</h1>
-                <div class="user-dropdown">
+            <header class="main-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #fff; border-bottom: 1px solid #e2e8f0;">
+                <h1 id="page-title" style="margin: 0;">Relatórios</h1>
+                
+                <div class="header-totals" style="display: flex; gap: 25px; align-items: center; margin-left: auto; margin-right: 30px;">
+                    <div style="text-align: right;">
+                        <span style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; display: block;">Produtos</span>
+                        <strong id="header-total-itens" style="color: #0f172a; font-size: 15px;">0</strong>
+                    </div>
+                    <div style="text-align: right; border-left: 1px solid #e2e8f0; padding-left: 25px;">
+                        <span style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; display: block;">Estoque un.</span>
+                        <strong id="header-total-unidades" style="color: #2563eb; font-size: 15px;">0 un.</strong>
+                    </div>
+                    <div style="text-align: right; border-left: 1px solid #e2e8f0; padding-left: 25px;">
+                        <span style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; display: block;">Valor Total</span>
+                        <strong id="header-total-financeiro" style="color: #16a34a; font-size: 15px;">R$ 0,00</strong>
+                    </div>
+                </div>
+
+                <div class="user-dropdown" style="display: flex; align-items: center; gap: 10px;">
                     <i class="fa-solid fa-circle-user user-icon"></i>
                     <span>Administrador</span>
                 </div>
             </header>
 
             <div id="view-relatorios" class="app-view active-view">
-                <div class="forms-card" style="padding: 20px; margin-bottom: 20px;">
+                <div class="forms-card" style="padding: 20px; margin-bottom: 25px;">
                     <h3><i class="fa-solid fa-file-export"></i> Exportar Dados do Depósito</h3>
                     <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Selecione o tipo de relatório que deseja gerar:</p>
+                    
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
                         <button class="btn btn-secondary" onclick="gerarRelatorioEstoque()" style="padding: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
                             <i class="fa-solid fa-boxes-stacked"></i> Posição de Estoque (Imprimir/PDF)
@@ -47,8 +64,37 @@
                         <button class="btn btn-secondary" onclick="gerarRelatorioClientes()" style="padding: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
                             <i class="fa-solid fa-address-book"></i> Lista de Clientes (Imprimir/PDF)
                         </button>
+                        <button class="btn btn-primary" onclick="gerarRelatorioHistorico()" style="padding: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; background: #2563eb; color: #fff; border: none; border-radius: 6px;">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Extrato de Movimentações (PDF)
+                        </button>
                     </div>
                 </div>
+
+                <div class="forms-card" style="padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Histórico Detalhado de Entradas e Saídas</h3>
+                        <button class="btn-action" onclick="if(confirm('Limpar histórico permanente?')){historico=[]; salvarDados(); renderizarHistorico();}" style="background: #f1f5f9; color: #64748b; padding: 6px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; border: 1px solid #cbd5e1;">
+                            <i class="fa-solid fa-trash-can"></i> Limpar Histórico
+                        </button>
+                    </div>
+                    
+                    <div class="table-container" style="background: #fff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow-x: auto; width: 100%;">
+                        <table class="stock-table" id="tabela-historico" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="background: #f8fafc; border-bottom: 2px solid #edf2f7;">
+                                    <th style="padding: 12px 16px; color: #475569; font-weight: 600;">Data / Hora</th>
+                                    <th style="padding: 12px 16px; color: #475569; font-weight: 600;">Produto</th>
+                                    <th style="padding: 12px 16px; color: #475569; font-weight: 600;">Operação</th>
+                                    <th style="padding: 12px 16px; color: #475569; font-weight: 600;">Quantidade</th>
+                                    <th style="padding: 12px 16px; color: #475569; font-weight: 600;">Responsável</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>

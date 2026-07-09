@@ -14,15 +14,17 @@ const dadosIniciaisCategorias = ["Alcoólica", "Bebida Gaseificada", "Sem Álcoo
 let clientes = JSON.parse(localStorage.getItem('deposito_clientes')) || [];
 let produtos = JSON.parse(localStorage.getItem('deposito_produtos')) || dadosIniciaisProdutos;
 let categorias = JSON.parse(localStorage.getItem('deposito_categorias')) || dadosIniciaisCategorias;
+let historico = JSON.parse(localStorage.getItem('deposito_historico')) || [];
 
 function salvarDados() {
     localStorage.setItem('deposito_clientes', JSON.stringify(clientes));
     localStorage.setItem('deposito_produtos', JSON.stringify(produtos));
     localStorage.setItem('deposito_categorias', JSON.stringify(categorias));
+    localStorage.setItem('deposito_historico', JSON.stringify(historico));
 }
 
 // =========================================================================
-// 2. CONTROLE DE SESSÃO
+// 2. CONTROLE DE SESSÃO E ABAS INTERNAS
 // =========================================================================
 function handleLogin(event) {
     event.preventDefault();
@@ -36,11 +38,10 @@ function handleLogin(event) {
     }
 }
 
-function handleLogout() {
+window.handleLogout = function() {
     window.location.href = "login.html";
 }
 
-// Alternador de abas internas (somente na clientes.html)
 function switchFormTab(targetForm) {
     const btnCliente = document.getElementById('tab-btn-cliente');
     const btnEstoque = document.getElementById('tab-btn-estoque');
@@ -64,8 +65,37 @@ function switchFormTab(targetForm) {
 }
 
 // =========================================================================
-// 3. ENGENHARIA DE CORRESPONDÊNCIA E RENDERIZAÇÃO
+// 3. IDENTIFICADOR DE PÁGINAS E RENDERIZADORES GLOBAIS
 // =========================================================================
+function atualizarPaineisDoSistema() {
+    atualizarContadoresDoCabecalho();
+    renderizarDashboard();
+    renderizarEstoque();
+    renderizarCategorias();
+    renderizarClientes();
+    renderizarHistorico();
+    atualizarSelectsDeCategoria();
+}
+
+function atualizarContadoresDoCabecalho() {
+    let totalItens = produtos.length;
+    let totalQtd = 0;
+    let totalValor = 0;
+
+    produtos.forEach(p => {
+        totalQtd += parseInt(p.qtd);
+        totalValor += (p.preco * p.qtd);
+    });
+
+    const elItens = document.getElementById('header-total-itens');
+    const elUnidades = document.getElementById('header-total-unidades');
+    const elFinanceiro = document.getElementById('header-total-financeiro');
+
+    if (elItens) elItens.innerText = totalItens;
+    if (elUnidades) elUnidades.innerText = `${totalQtd} un.`;
+    if (elFinanceiro) elFinanceiro.innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function identificarECarregarPaginaAtual() {
     const path = window.location.pathname;
     const pagina = path.substring(path.lastIndexOf("/") + 1);
@@ -76,7 +106,6 @@ function identificarECarregarPaginaAtual() {
         atualizarSelectsDeCategoria();
         renderizarClientes();
         
-        // Verifica se veio redirecionado para abrir direto na aba de estoque
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('aba') === 'estoque') {
             switchFormTab('estoque');
@@ -87,7 +116,11 @@ function identificarECarregarPaginaAtual() {
         document.getElementById('category-filter').addEventListener('change', renderizarEstoque);
     } else if (pagina === "categorias.html") {
         renderizarCategorias();
+    } else if (pagina === "relatorios.html") {
+        renderizarHistorico();
     }
+    
+    atualizarContadoresDoCabecalho();
 }
 
 function renderizarDashboard() {
@@ -111,7 +144,10 @@ function renderizarEstoque() {
 
     tabelaBody.innerHTML = '';
     const filtroCategoria = document.getElementById('category-filter')?.value || 'Todas';
-    let totalQtd = 0; let totalValor = 0; let totalItensFiltrados = 0;
+    
+    let totalQtd = 0; 
+    let totalValor = 0; 
+    let totalItensFiltrados = 0;
 
     produtos.forEach((p, index) => {
         if (filtroCategoria !== 'Todas' && p.categoria !== filtroCategoria) return;
@@ -132,18 +168,24 @@ function renderizarEstoque() {
         }
 
         const emoji = p.categoria.includes("Alcoól") ? "🍺" : p.categoria.includes("Gase") ? "🥤" : "💧";
-
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><div class="product-cell"><span class="emoji-icon">${emoji}</span> ${p.nome}</div></td>
             <td>${statusBadge}</td>
             <td><div class="category-cell">${p.categoria}</div></td>
-            <td>${p.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-            <td>${valorTotalProduto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+            <td>R$ ${p.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+            <td>R$ ${valorTotalProduto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
             <td>${p.marca}</td>
             <td><span class="${textQtyClass}">${p.qtd} un.</span></td>
-            <td class="text-out">-</td>
-            <td class="text-in">-</td>
+            
+            <td style="text-align: center;">
+                <button class="btn-action" onclick="darSaida(${index})" style="background: #fee2e2; color: #ef4444; border-radius: 4px; padding: 4px 8px; font-weight: bold; cursor:pointer;"><i class="fa-solid fa-minus"></i> Saída</button>
+            </td>
+            <td style="text-align: center;">
+                <button class="btn-action" onclick="darEntrada(${index})" style="background: #dcfce7; color: #22c55e; border-radius: 4px; padding: 4px 8px; font-weight: bold; cursor:pointer;"><i class="fa-solid fa-plus"></i> Entrada</button>
+            </td>
+            
             <td>
                 <div class="action-buttons">
                     <button class="btn-action btn-delete" onclick="removerProduto(${index})"><i class="fa-solid fa-trash"></i></button>
@@ -153,11 +195,17 @@ function renderizarEstoque() {
         tabelaBody.appendChild(tr);
     });
 
-    if (document.getElementById('rodape-total-un')) {
-        document.querySelector('.total-items').innerText = `Total de itens: ${totalItensFiltrados}`;
-        document.getElementById('rodape-total-un').innerText = totalQtd;
-        document.getElementById('rodape-total-rs').innerText = totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    if (totalItensFiltrados === 0) {
+        tabelaBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: #94a3b8; padding: 20px;">Nenhum produto cadastrado nesta categoria.</td></tr>`;
     }
+
+    const hItens = document.getElementById('header-total-itens');
+    const hUnidades = document.getElementById('header-total-unidades');
+    const hFinanceiro = document.getElementById('header-total-financeiro');
+
+    if (hItens) hItens.innerText = totalItensFiltrados;
+    if (hUnidades) hUnidades.innerText = `${totalQtd} un.`;
+    if (hFinanceiro) hFinanceiro.innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 }
 
 function renderizarCategorias() {
@@ -190,6 +238,33 @@ function renderizarClientes() {
     });
 }
 
+function renderizarHistorico() {
+    const tabelaBody = document.querySelector('#tabela-historico tbody');
+    if (!tabelaBody) return;
+
+    tabelaBody.innerHTML = '';
+
+    if (historico.length === 0) {
+        tabelaBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">Nenhuma movimentação realizada ainda.</td></tr>`;
+        return;
+    }
+
+    historico.forEach(h => {
+        const corTipo = h.tipo === 'Entrada' ? '#22c55e' : '#ef4444';
+        const bgTipo = h.tipo === 'Entrada' ? '#dcfce7' : '#fee2e2';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${h.data}</td>
+            <td><strong>${h.produto}</strong></td>
+            <td><span style="background: ${bgTipo}; color: ${corTipo}; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">${h.tipo}</span></td>
+            <td style="font-weight: 600;">${h.quantidade} un.</td>
+            <td style="color: #64748b;">${h.usuario}</td>
+        `;
+        tabelaBody.appendChild(tr);
+    });
+}
+
 function atualizarSelectsDeCategoria() {
     const selectForm = document.getElementById('form-produto-categoria');
     const selectFiltro = document.getElementById('category-filter');
@@ -207,7 +282,65 @@ function atualizarSelectsDeCategoria() {
 }
 
 // =========================================================================
-// 4. TRATAMENTO DE INPUTS E PERSISTÊNCIA
+// 4. MOVIMENTAÇÕES COMPLEMENTARES (ENTRADA E SAÍDA DE PRODUTOS CORRIGIDAS)
+// =========================================================================
+window.darEntrada = function(index) {
+    const qtdInformada = prompt(`Dar ENTRADA para: ${produtos[index].nome}\nDigite a quantidade comprada/recebida:`);
+    if (qtdInformada === null) return; 
+    
+    const quantidade = parseInt(qtdInformada);
+    if (isNaN(quantidade) || quantidade <= 0) {
+        alert("Por favor, digite um número inteiro válido e maior que zero.");
+        return;
+    }
+
+    produtos[index].qtd = parseInt(produtos[index].qtd) + quantidade;
+    
+    historico.unshift({
+        data: new Date().toLocaleString('pt-BR'),
+        produto: produtos[index].nome,
+        tipo: 'Entrada',
+        quantidade: quantidade,
+        usuario: 'Administrador'
+    });
+
+    salvarDados();
+    atualizarPaineisDoSistema();
+    alert(`Entrada registrada com sucesso!`);
+}
+
+window.darSaida = function(index) {
+    const qtdInformada = prompt(`Registrar SAÍDA para: ${produtos[index].nome}\nDigite a quantidade vendida/retirada:`);
+    if (qtdInformada === null) return; 
+
+    const quantidade = parseInt(qtdInformada);
+    if (isNaN(quantidade) || quantidade <= 0) {
+        alert("Por favor, digite um número inteiro válido e maior que zero.");
+        return;
+    }
+
+    if (quantidade > parseInt(produtos[index].qtd)) {
+        alert(`Operação cancelada! Estoque insuficiente.\nSaldo atual: ${produtos[index].qtd} un.`);
+        return;
+    }
+
+    produtos[index].qtd = parseInt(produtos[index].qtd) - quantidade;
+    
+    historico.unshift({
+        data: new Date().toLocaleString('pt-BR'),
+        produto: produtos[index].nome,
+        tipo: 'Saída',
+        quantidade: quantidade,
+        usuario: 'Administrador'
+    });
+
+    salvarDados();
+    atualizarPaineisDoSistema();
+    alert(`Saída registrada com sucesso!`);
+}
+
+// =========================================================================
+// 5. PROCESSAMENTO DE FORMULÁRIOS E EXCLUSÕES
 // =========================================================================
 function handleFormAction(event, entity) {
     event.preventDefault();
@@ -224,6 +357,7 @@ function handleFormAction(event, entity) {
         alert('Produto adicionado ao estoque!');
     }
     event.target.reset();
+    atualizarPaineisDoSistema();
 }
 
 function adicionarCategoriaPrompt() {
@@ -232,42 +366,103 @@ function adicionarCategoriaPrompt() {
         if (categorias.includes(novaCat.trim())) return alert("Categoria já existente.");
         categorias.push(novaCat.trim());
         salvarDados();
-        identificarECarregarPaginaAtual();
+        atualizarPaineisDoSistema();
     }
 }
 
 function removerProduto(index) {
-    if (confirm('Excluir produto?')) { produtos.splice(index, 1); salvarDados(); renderizarEstoque(); }
+    if (confirm('Excluir produto do catálogo?')) { produtos.splice(index, 1); salvarDados(); atualizarPaineisDoSistema(); }
 }
 function removerCategoria(index) {
-    if (confirm('Excluir categoria?')) { categorias.splice(index, 1); salvarDados(); renderizarCategorias(); }
+    if (confirm('Excluir categoria?')) { categorias.splice(index, 1); salvarDados(); atualizarPaineisDoSistema(); }
 }
-// Corrigido o escopo global da remoção do cliente
 window.removerCliente = function(index) {
-    if (confirm('Excluir cliente?')) { clientes.splice(index, 1); salvarDados(); renderizarClientes(); }
+    if (confirm('Excluir cliente?')) { clientes.splice(index, 1); salvarDados(); atualizarPaineisDoSistema(); }
 }
 
 // =========================================================================
-// 5. RELATÓRIOS SEGUROS
+// 6. GERADOR DE RELATÓRIOS (IMPRESSÃO / PDF)
 // =========================================================================
 function gerarRelatorioEstoque() {
     const win = window.open('', '_blank');
-    let html = "<h2>Relatório de Estoque</h2><table border='1' width='100%'><thead><tr><th>Produto</th><th>Categoria</th><th>Preço</th><th>Qtd</th></tr></thead><tbody>";
-    produtos.forEach(p => { html += `<tr><td>${p.nome}</td><td>${p.categoria}</td><td>R$ ${p.preco.toFixed(2)}</td><td>${p.qtd}</td></tr>`; });
+    let html = "<h2>Relatório de Estoque - Depósito JP</h2><table border='1' width='100%' style='border-collapse:collapse; font-family:sans-serif;'><thead><tr style='background:#f1f5f9;'><th>Produto</th><th>Categoria</th><th>Preço</th><th>Qtd em Estoque</th></tr></thead><tbody>";
+    produtos.forEach(p => { html += `<tr><td style='padding:8px;'>${p.nome}</td><td style='padding:8px;'>${p.categoria}</td><td style='padding:8px;'>R$ ${p.preco.toFixed(2)}</td><td style='padding:8px;'>${p.qtd} un.</td></tr>`; });
     html += "</tbody></table><script>window.onload=function(){window.print();}</script>";
     win.document.write(html); win.document.close();
 }
 
 function gerarRelatorioClientes() {
     const win = window.open('', '_blank');
-    let html = "<h2>Relatório de Clientes</h2><table border='1' width='100%'><thead><tr><th>Nome</th><th>Telefone</th><th>Endereço</th></tr></thead><tbody>";
-    clientes.forEach(c => { html += `<tr><td>${c.nome}</td><td>${c.telefone}</td><td>${c.endereco}</td></tr>`; });
+    let html = "<h2>Relatório de Clientes - Depósito JP</h2><table border='1' width='100%' style='border-collapse:collapse; font-family:sans-serif;'><thead><tr style='background:#f1f5f9;'><th>Nome</th><th>Telefone</th><th>Endereço</th></tr></thead><tbody>";
+    clientes.forEach(c => { html += `<tr><td style='padding:8px;'><strong>${c.nome}</strong></td><td style='padding:8px;'>${c.telefone}</td><td style='padding:8px;'>${c.endereco}</td></tr>`; });
     html += "</tbody></table><script>window.onload=function(){window.print();}</script>";
     win.document.write(html); win.document.close();
 }
+function gerarRelatorioHistorico() {
+    const win = window.open('', '_blank');
+    
+    let linhasTabela = '';
+    
+    if (historico.length === 0) {
+        linhasTabela = `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 15px;">Nenhuma movimentação registrada no sistema.</td></tr>`;
+    } else {
+        historico.forEach(h => {
+            const corTipo = h.tipo === 'Entrada' ? '#16a34a' : '#dc2626';
+            linhasTabela += `
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1;">${h.data}</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1;"><strong>${h.produto}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: ${corTipo}; font-weight: bold;">${h.tipo}</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: bold;">${h.quantidade} un.</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #475569;">${h.usuario}</td>
+                </tr>
+            `;
+        });
+    }
+
+    let html = `
+    <html>
+    <head>
+        <title>Extrato de Movimentações - Depósito JP</title>
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+            h2 { text-align: center; color: #1e293b; border-bottom: 2px solid #334155; padding-bottom: 10px; margin-bottom: 5px; }
+            p.sub { text-align: center; color: #64748b; font-size: 13px; margin-top: 0; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th { background: #f1f5f9; color: #334155; font-weight: bold; padding: 10px; border: 1px solid #cbd5e1; text-align: left; }
+            tr:nth-child(even) { background: #f8fafc; }
+        </style>
+    </head>
+    <body>
+        <h2>Depósito de Bebidas JP</h2>
+        <p class="sub">Relatório de Auditoria: Histórico Completo de Entradas e Saídas<br>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data / Hora Exata</th>
+                    <th>Produto</th>
+                    <th>Operação</th>
+                    <th>Quantidade</th>
+                    <th>Responsável</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${linhasTabela}
+            </tbody>
+        </table>
+        <script>
+            window.onload = function() { window.print(); }
+        </script>
+    </body>
+    </html>
+    `;
+
+    win.document.write(html);
+    win.document.close();
+}
 
 // =========================================================================
-// 6. DISPARADORES INICIAIS
+// 7. MÁSCARAS E EVENTOS DE INICIALIZAÇÃO
 // =========================================================================
 const phoneField = document.getElementById('phone-field');
 if (phoneField) {
