@@ -1,12 +1,12 @@
-// =========================================================================
-// 1. BANCO DE DADOS LOCAL CENTRALIZADO (LOCALSTORAGE)
-// =========================================================================
+
+// 1. BANCO DE DADOS LOCAL CENTRALIZADO 
+
 const dadosIniciaisProdutos = [
-    { nome: "Cerveja Skol 600ml", categoria: "Alcoólica", marca: "Skol", preco: 6.00, qtd: 100, minimo: 20 },
-    { nome: "Coca-Cola 2L", categoria: "Bebida Gaseificada", marca: "Coca-Cola", preco: 7.50, qtd: 60, minimo: 15 },
-    { nome: "Água Mineral 500ml", categoria: "Sem Álcool", marca: "Crystal", preco: 1.50, qtd: 50, minimo: 60 },
-    { nome: "Suco Del Valle 1L", categoria: "Bebida Infantil", marca: "Del Valle", preco: 4.80, qtd: 60, minimo: 10 },
-    { nome: "Whisky Red Label 750ml", categoria: "Outros", marca: "Johnnie Walker", preco: 89.90, qtd: 5, minimo: 10 }
+    { nome: "Cerveja Skol 600ml", category: "Alcoólica", marca: "Skol", preco: 6.00, qtd: 100, minimo: 20 },
+    { nome: "Coca-Cola 2L", category: "Bebida Gaseificada", marca: "Coca-Cola", preco: 7.50, qtd: 60, minimo: 15 },
+    { nome: "Água Mineral 500ml", category: "Sem Álcool", marca: "Crystal", preco: 1.50, qtd: 50, minimo: 60 },
+    { nome: "Suco Del Valle 1L", category: "Bebida Infantil", marca: "Del Valle", preco: 4.80, qtd: 60, minimo: 10 },
+    { nome: "Whisky Red Label 750ml", category: "Outros", marca: "Johnnie Walker", preco: 89.90, qtd: 5, minimo: 10 }
 ];
 
 const dadosIniciaisCategorias = ["Alcoólica", "Bebida Gaseificada", "Sem Álcool", "Bebida Infantil", "Outros"];
@@ -23,9 +23,8 @@ function salvarDados() {
     localStorage.setItem('deposito_historico', JSON.stringify(historico));
 }
 
-// =========================================================================
 // 2. CONTROLE DE SESSÃO E ABAS INTERNAS
-// =========================================================================
+
 function handleLogin(event) {
     event.preventDefault();
     const usuario = document.getElementById("usuario").value;
@@ -64,36 +63,15 @@ function switchFormTab(targetForm) {
     }
 }
 
-// =========================================================================
 // 3. IDENTIFICADOR DE PÁGINAS E RENDERIZADORES GLOBAIS
-// =========================================================================
+
 function atualizarPaineisDoSistema() {
-    atualizarContadoresDoCabecalho();
     renderizarDashboard();
     renderizarEstoque();
     renderizarCategorias();
     renderizarClientes();
     renderizarHistorico();
     atualizarSelectsDeCategoria();
-}
-
-function atualizarContadoresDoCabecalho() {
-    let totalItens = produtos.length;
-    let totalQtd = 0;
-    let totalValor = 0;
-
-    produtos.forEach(p => {
-        totalQtd += parseInt(p.qtd);
-        totalValor += (p.preco * p.qtd);
-    });
-
-    const elItens = document.getElementById('header-total-itens');
-    const elUnidades = document.getElementById('header-total-unidades');
-    const elFinanceiro = document.getElementById('header-total-financeiro');
-
-    if (elItens) elItens.innerText = totalItens;
-    if (elUnidades) elUnidades.innerText = `${totalQtd} un.`;
-    if (elFinanceiro) elFinanceiro.innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function identificarECarregarPaginaAtual() {
@@ -119,8 +97,6 @@ function identificarECarregarPaginaAtual() {
     } else if (pagina === "relatorios.html") {
         renderizarHistorico();
     }
-    
-    atualizarContadoresDoCabecalho();
 }
 
 function renderizarDashboard() {
@@ -136,6 +112,14 @@ function renderizarDashboard() {
         document.getElementById('dash-total-alertas').innerText = `${alertasCriticos} Itens`;
         document.getElementById('dash-alerta-card').style.borderLeft = alertasCriticos > 0 ? "5px solid #df2121" : "5px solid #4caf50";
     }
+    
+    const hItens = document.getElementById('header-total-itens');
+    const hUnidades = document.getElementById('header-total-unidades');
+    const hFinanceiro = document.getElementById('header-total-financeiro');
+
+    if (hItens) hItens.innerText = produtos.length;
+    if (hUnidades) hUnidades.innerText = `${totalQtd} un.`;
+    if (hFinanceiro) hFinanceiro.innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 }
 
 function renderizarEstoque() {
@@ -168,7 +152,7 @@ function renderizarEstoque() {
         }
 
         const emoji = p.categoria.includes("Alcoól") ? "🍺" : p.categoria.includes("Gase") ? "🥤" : "💧";
-        
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><div class="product-cell"><span class="emoji-icon">${emoji}</span> ${p.nome}</div></td>
@@ -180,13 +164,13 @@ function renderizarEstoque() {
             <td><span class="${textQtyClass}">${p.qtd} un.</span></td>
             
             <td style="text-align: center;">
-                <button class="btn-action" onclick="darSaida(${index})" style="background: #fee2e2; color: #ef4444; border-radius: 4px; padding: 4px 8px; font-weight: bold; cursor:pointer;"><i class="fa-solid fa-minus"></i> Saída</button>
+                <button class="btn-action" onclick="darSaida(${index})" style="background: #fee2e2; color: #ef4444; border-radius: 4px; padding: 4px 8px; font-weight: bold; cursor:pointer; border:none;"><i class="fa-solid fa-minus"></i> Saída</button>
             </td>
             <td style="text-align: center;">
-                <button class="btn-action" onclick="darEntrada(${index})" style="background: #dcfce7; color: #22c55e; border-radius: 4px; padding: 4px 8px; font-weight: bold; cursor:pointer;"><i class="fa-solid fa-plus"></i> Entrada</button>
+                <button class="btn-action" onclick="darEntrada(${index})" style="background: #dcfce7; color: #22c55e; border-radius: 4px; padding: 4px 8px; font-weight: bold; cursor:pointer; border:none;"><i class="fa-solid fa-plus"></i> Entrada</button>
             </td>
             
-            <td>
+            <td style="text-align: center;">
                 <div class="action-buttons">
                     <button class="btn-action btn-delete" onclick="removerProduto(${index})"><i class="fa-solid fa-trash"></i></button>
                 </div>
@@ -205,7 +189,7 @@ function renderizarEstoque() {
 
     if (hItens) hItens.innerText = totalItensFiltrados;
     if (hUnidades) hUnidades.innerText = `${totalQtd} un.`;
-    if (hFinanceiro) hFinanceiro.innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    if (hFinanceiro) hFinanceiro.innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function renderizarCategorias() {
@@ -213,12 +197,23 @@ function renderizarCategorias() {
     if (!tabelaBody) return;
     tabelaBody.innerHTML = '';
 
+    let totalQtd = 0; let totalValor = 0;
+    produtos.forEach(p => { totalQtd += parseInt(p.qtd); totalValor += (p.preco * p.qtd); });
+
     categorias.forEach((cat, index) => {
         const qtdAtrelados = produtos.filter(p => p.categoria === cat).length;
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>📁</td><td><strong>${cat}</strong></td><td>${qtdAtrelados} produtos</td><td><div class="action-buttons"><button class="btn-action btn-delete" onclick="removerCategoria(${index})"><i class="fa-solid fa-trash"></i></button></div></td>`;
         tabelaBody.appendChild(tr);
     });
+
+    const hItens = document.getElementById('header-total-itens');
+    const hUnidades = document.getElementById('header-total-unidades');
+    const hFinanceiro = document.getElementById('header-total-financeiro');
+
+    if (hItens) hItens.innerText = produtos.length;
+    if (hUnidades) hUnidades.innerText = `${totalQtd} un.`;
+    if (hFinanceiro) hFinanceiro.innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 }
 
 function renderizarClientes() {
@@ -226,43 +221,62 @@ function renderizarClientes() {
     if (!tabelaBody) return;
     tabelaBody.innerHTML = '';
 
+    let totalQtd = 0; let totalValor = 0;
+    produtos.forEach(p => { totalQtd += parseInt(p.qtd); totalValor += (p.preco * p.qtd); });
+
     if (clientes.length === 0) {
         tabelaBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 15px;">Nenhum cliente cadastrado ainda.</td></tr>`;
-        return;
+    } else {
+        clientes.forEach((c, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><strong>${c.nome}</strong></td><td>${c.telefone}</td><td>${c.endereco}</td><td>${c.email}</td><td><div class="action-buttons"><button class="btn-action btn-delete" onclick="removerCliente(${index})"><i class="fa-solid fa-trash"></i></button></div></td>`;
+            tabelaBody.appendChild(tr);
+        });
     }
 
-    clientes.forEach((c, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td><strong>${c.nome}</strong></td><td>${c.telefone}</td><td>${c.endereco}</td><td>${c.email}</td><td><div class="action-buttons"><button class="btn-action btn-delete" onclick="removerCliente(${index})"><i class="fa-solid fa-trash"></i></button></div></td>`;
-        tabelaBody.appendChild(tr);
-    });
+    const hItens = document.getElementById('header-total-itens');
+    const hUnidades = document.getElementById('header-total-unidades');
+    const hFinanceiro = document.getElementById('header-total-financeiro');
+
+    if (hItens) hItens.innerText = produtos.length;
+    if (hUnidades) hUnidades.innerText = `${totalQtd} un.`;
+    if (hFinanceiro) hFinanceiro.innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 }
 
 function renderizarHistorico() {
     const tabelaBody = document.querySelector('#tabela-historico tbody');
     if (!tabelaBody) return;
-
     tabelaBody.innerHTML = '';
+
+    let totalQtd = 0; let totalValor = 0;
+    produtos.forEach(p => { totalQtd += parseInt(p.qtd); totalValor += (p.preco * p.qtd); });
 
     if (historico.length === 0) {
         tabelaBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">Nenhuma movimentação realizada ainda.</td></tr>`;
-        return;
+    } else {
+        historico.forEach(h => {
+            const corTipo = h.tipo === 'Entrada' ? '#22c55e' : '#ef4444';
+            const bgTipo = h.tipo === 'Entrada' ? '#dcfce7' : '#fee2e2';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${h.data}</td>
+                <td><strong>${h.produto}</strong></td>
+                <td><span style="background: ${bgTipo}; color: ${corTipo}; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">${h.tipo}</span></td>
+                <td style="font-weight: 600;">${h.quantidade} un.</td>
+                <td style="color: #64748b;">${h.usuario}</td>
+            `;
+            tabelaBody.appendChild(tr);
+        });
     }
 
-    historico.forEach(h => {
-        const corTipo = h.tipo === 'Entrada' ? '#22c55e' : '#ef4444';
-        const bgTipo = h.tipo === 'Entrada' ? '#dcfce7' : '#fee2e2';
+    const hItens = document.getElementById('header-total-itens');
+    const hUnidades = document.getElementById('header-total-unidades');
+    const hFinanceiro = document.getElementById('header-total-financeiro');
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${h.data}</td>
-            <td><strong>${h.produto}</strong></td>
-            <td><span style="background: ${bgTipo}; color: ${corTipo}; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">${h.tipo}</span></td>
-            <td style="font-weight: 600;">${h.quantidade} un.</td>
-            <td style="color: #64748b;">${h.usuario}</td>
-        `;
-        tabelaBody.appendChild(tr);
-    });
+    if (hItens) hItens.innerText = produtos.length;
+    if (hUnidades) hUnidades.innerText = `${totalQtd} un.`;
+    if (hFinanceiro) hFinanceiro.innerText = `R$ ${totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 }
 
 function atualizarSelectsDeCategoria() {
@@ -282,7 +296,7 @@ function atualizarSelectsDeCategoria() {
 }
 
 // =========================================================================
-// 4. MOVIMENTAÇÕES COMPLEMENTARES (ENTRADA E SAÍDA DE PRODUTOS CORRIGIDAS)
+// 4. MOVIMENTAÇÕES DE ESTOQUE (ENTRADA E SAÍDA)
 // =========================================================================
 window.darEntrada = function(index) {
     const qtdInformada = prompt(`Dar ENTRADA para: ${produtos[index].nome}\nDigite a quantidade comprada/recebida:`);
@@ -314,7 +328,7 @@ window.darSaida = function(index) {
     if (qtdInformada === null) return; 
 
     const quantidade = parseInt(qtdInformada);
-    if (isNaN(quantidade) || quantidade <= 0) {
+    if (isNaN(quantidade) || quantity <= 0) {
         alert("Por favor, digite um número inteiro válido e maior que zero.");
         return;
     }
@@ -398,9 +412,9 @@ function gerarRelatorioClientes() {
     html += "</tbody></table><script>window.onload=function(){window.print();}</script>";
     win.document.write(html); win.document.close();
 }
+
 function gerarRelatorioHistorico() {
     const win = window.open('', '_blank');
-    
     let linhasTabela = '';
     
     if (historico.length === 0) {
@@ -408,57 +422,12 @@ function gerarRelatorioHistorico() {
     } else {
         historico.forEach(h => {
             const corTipo = h.tipo === 'Entrada' ? '#16a34a' : '#dc2626';
-            linhasTabela += `
-                <tr>
-                    <td style="padding: 8px; border: 1px solid #cbd5e1;">${h.data}</td>
-                    <td style="padding: 8px; border: 1px solid #cbd5e1;"><strong>${h.produto}</strong></td>
-                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: ${corTipo}; font-weight: bold;">${h.tipo}</td>
-                    <td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: bold;">${h.quantidade} un.</td>
-                    <td style="padding: 8px; border: 1px solid #cbd5e1; color: #475569;">${h.usuario}</td>
-                </tr>
-            `;
+            linhasTabela += `<tr><td style="padding: 8px; border: 1px solid #cbd5e1;">${h.data}</td><td style="padding: 8px; border: 1px solid #cbd5e1;"><strong>${h.produto}</strong></td><td style="padding: 8px; border: 1px solid #cbd5e1; color: ${corTipo}; font-weight: bold;">${h.tipo}</td><td style="padding: 8px; border: 1px solid #cbd5e1; font-weight: bold;">${h.quantidade} un.</td><td style="padding: 8px; border: 1px solid #cbd5e1; color: #475569;">${h.usuario}</td></tr>`;
         });
     }
 
-    let html = `
-    <html>
-    <head>
-        <title>Extrato de Movimentações - Depósito JP</title>
-        <style>
-            body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-            h2 { text-align: center; color: #1e293b; border-bottom: 2px solid #334155; padding-bottom: 10px; margin-bottom: 5px; }
-            p.sub { text-align: center; color: #64748b; font-size: 13px; margin-top: 0; margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            th { background: #f1f5f9; color: #334155; font-weight: bold; padding: 10px; border: 1px solid #cbd5e1; text-align: left; }
-            tr:nth-child(even) { background: #f8fafc; }
-        </style>
-    </head>
-    <body>
-        <h2>Depósito de Bebidas JP</h2>
-        <p class="sub">Relatório de Auditoria: Histórico Completo de Entradas e Saídas<br>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
-        <table>
-            <thead>
-                <tr>
-                    <th>Data / Hora Exata</th>
-                    <th>Produto</th>
-                    <th>Operação</th>
-                    <th>Quantidade</th>
-                    <th>Responsável</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${linhasTabela}
-            </tbody>
-        </table>
-        <script>
-            window.onload = function() { window.print(); }
-        </script>
-    </body>
-    </html>
-    `;
-
-    win.document.write(html);
-    win.document.close();
+    let html = `<html><head><title>Extrato de Movimentações - Depósito JP</title><style>body { font-family: Arial, sans-serif; padding: 20px; color: #333; } h2 { text-align: center; color: #1e293b; border-bottom: 2px solid #334155; padding-bottom: 10px; margin-bottom: 5px; } p.sub { text-align: center; color: #64748b; font-size: 13px; margin-top: 0; margin-bottom: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 10px; } th { background: #f1f5f9; color: #334155; font-weight: bold; padding: 10px; border: 1px solid #cbd5e1; text-align: left; } tr:nth-child(even) { background: #f8fafc; }</style></head><body><h2>Depósito de Bebidas JP</h2><p class="sub">Relatório de Auditoria: Histórico Completo de Entradas e Saídas<br>Gerado em: ${new Date().toLocaleString('pt-BR')}</p><table><thead><tr><th>Data / Hora Exata</th><th>Produto</th><th>Operação</th><th>Quantidade</th><th>Responsável</th></tr></thead><tbody>${linhasTabela}</tbody></table><script>window.onload = function() { window.print(); }</script></body></html>`;
+    win.document.write(html); win.document.close();
 }
 
 // =========================================================================
