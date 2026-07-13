@@ -1,6 +1,6 @@
-/* =========================================================================
+/* 
    1. CONFIGURAÇÕES GLOBAIS E PALETA DE CORES (RESET)
-   ========================================================================= */
+   */
 * {
     margin: 0;
     padding: 0;
@@ -20,9 +20,9 @@ body {
     width: 100vw;
 }
 
-/* =========================================================================
+/* 
    2. ESTILIZAÇÃO DO MENU LATERAL (SIDEBAR)
-   ========================================================================= */
+   */
 .sidebar {
     width: 260px;
     background-color: #0f172a;
@@ -105,9 +105,9 @@ body {
     color: #fff;
 }
 
-/* =========================================================================
+/*
    3. ÁREA DE CONTEÚDO PRINCIPAL (MAIN CONTENT)
-   ========================================================================= */
+   */
 .main-content {
     flex: 1;
     display: flex;
@@ -177,9 +177,9 @@ body {
     margin-bottom: 24px;
 }
 
-/* =========================================================================
+/*
    4. COMPONENTES VISUAIS (BOTÕES, TABELAS, BADGES)
-   ========================================================================= */
+   */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -261,9 +261,9 @@ body {
 
 .product-cell { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 
-/* =========================================================================
+/* 
    5. NAVEGAÇÃO POR ABAS (TABS NO CADASTRO)
-   ========================================================================= */
+  */
 .tab-navigation {
     display: flex;
     gap: 10px;
@@ -304,9 +304,9 @@ body {
 
 .section-header h2 { font-size: 18px; color: #0f172a; }
 
-/* =========================================================================
+/* 
    6. FORMULÁRIOS E GRIDS DE INPUT (INTERNOS)
-   ========================================================================= */
+    */
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -351,12 +351,10 @@ body {
 
 .form-actions { display: flex; gap: 12px; margin-top: 15px; clear: both; }
 
-/* =========================================================================
+/* 
    7. 🔒 TELA DE LOGIN ATUALIZADA (FOTO DE FUNDO COMPLETA)
-   ========================================================================= */
-/* =========================================================================
-   7. 🔒 TELA DE LOGIN (FUNDO REVISADO DE ALTA DISPONIBILIDADE)
-   ========================================================================= */
+    */
+
 .login-page-body {
     display: flex;
     justify-content: center;
@@ -474,9 +472,9 @@ body {
     text-decoration: underline;
 }
 
-/* =========================================================================
+/*
    8. MEDIA QUERIES (RESPONSIVIDADE INTELIGENTE)
-   ========================================================================= */
+  */
 @media (max-width: 1024px) {
     .dashboard-container { flex-direction: column; }
     .sidebar { width: 100%; }

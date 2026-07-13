@@ -10,7 +10,7 @@ const dadosIniciaisProdutos = [
 ];
 
 const dadosIniciaisCategorias = ["Alcoólica", "Bebida Gaseificada", "Sem Álcool", "Bebida Infantil", "Outros"];
-
+let indexClienteEdicao = null; // Guarda o índice do cliente que está sendo editado
 let clientes = JSON.parse(localStorage.getItem('deposito_clientes')) || [];
 let produtos = JSON.parse(localStorage.getItem('deposito_produtos')) || dadosIniciaisProdutos;
 let categorias = JSON.parse(localStorage.getItem('deposito_categorias')) || dadosIniciaisCategorias;
@@ -229,7 +229,19 @@ function renderizarClientes() {
     } else {
         clientes.forEach((c, index) => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><strong>${c.nome}</strong></td><td>${c.telefone}</td><td>${c.endereco}</td><td>${c.email}</td><td><div class="action-buttons"><button class="btn-action btn-delete" onclick="removerCliente(${index})"><i class="fa-solid fa-trash"></i></button></div></td>`;
+            tr.innerHTML = `
+                <td><strong>${c.nome}</strong></td>
+                <td>${c.telefone}</td>
+                <td>${c.endereco}</td>
+                <td>${c.email}</td>
+                <td>
+                    <div class="action-buttons" style="display: flex; gap: 8px; justify-content: center;">
+                        <!-- NOVO BOTÃO DE EDITAR -->
+                        <button class="btn-action" onclick="prepararEdicaoCliente(${index})" style="background: #fef3c7; color: #d97706; border-radius: 4px; padding: 4px 8px; cursor: pointer; border: none;"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-action btn-delete" onclick="removerCliente(${index})" style="border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </td>
+            `;
             tabelaBody.appendChild(tr);
         });
     }
@@ -295,9 +307,9 @@ function atualizarSelectsDeCategoria() {
     }
 }
 
-// =========================================================================
+// 
 // 4. MOVIMENTAÇÕES DE ESTOQUE (ENTRADA E SAÍDA)
-// =========================================================================
+//
 window.darEntrada = function(index) {
     const qtdInformada = prompt(`Dar ENTRADA para: ${produtos[index].nome}\nDigite a quantidade comprada/recebida:`);
     if (qtdInformada === null) return; 
@@ -353,17 +365,37 @@ window.darSaida = function(index) {
     alert(`Saída registrada com sucesso!`);
 }
 
-// =========================================================================
+//
 // 5. PROCESSAMENTO DE FORMULÁRIOS E EXCLUSÕES
-// =========================================================================
+//
 function handleFormAction(event, entity) {
     event.preventDefault();
     const campos = event.target.elements;
 
     if (entity === 'Cliente') {
-        clientes.push({ nome: campos[0].value, telefone: document.getElementById('phone-field').value, endereco: campos[2].value, email: campos[3].value || 'Não informado' });
+        const nome = campos[0].value;
+        const telefone = document.getElementById('phone-field').value;
+        const endereco = campos[2].value;
+        const email = campos[3].value || 'Não informado';
+
+        if (indexClienteEdicao !== null) {
+            // MODO EDIÇÃO: Atualiza o cliente existente
+            clientes[indexClienteEdicao] = { nome, telefone, endereco, email };
+            indexClienteEdicao = null; // Reseta o estado
+            alert('Cliente atualizado com sucesso!');
+            
+            // Restaura o botão original
+            const btnSalvar = document.getElementById('btn-salvar-cliente');
+            if (btnSalvar) {
+                btnSalvar.innerHTML = `<i class="fa-solid fa-check"></i> Salvar Cliente`;
+                btnSalvar.style.background = '#2563eb';
+            }
+        } else {
+            // MODO NOVO: Adiciona um novo registro
+            clientes.push({ nome, telefone, endereco, email });
+            alert('Cliente cadastrado com sucesso!');
+        }
         salvarDados();
-        alert('Cliente cadastrado com sucesso!');
         renderizarClientes();
     } else if (entity === 'Produto') {
         produtos.push({ nome: campos[0].value, categoria: campos[1].value, marca: campos[2].value, preco: parseFloat(campos[3].value), qtd: parseInt(campos[4].value), minimo: parseInt(campos[5].value) });
@@ -394,9 +426,9 @@ window.removerCliente = function(index) {
     if (confirm('Excluir cliente?')) { clientes.splice(index, 1); salvarDados(); atualizarPaineisDoSistema(); }
 }
 
-// =========================================================================
+// 
 // 6. GERADOR DE RELATÓRIOS (IMPRESSÃO / PDF)
-// =========================================================================
+// 
 function gerarRelatorioEstoque() {
     const win = window.open('', '_blank');
     let html = "<h2>Relatório de Estoque - Depósito JP</h2><table border='1' width='100%' style='border-collapse:collapse; font-family:sans-serif;'><thead><tr style='background:#f1f5f9;'><th>Produto</th><th>Categoria</th><th>Preço</th><th>Qtd em Estoque</th></tr></thead><tbody>";
@@ -430,9 +462,9 @@ function gerarRelatorioHistorico() {
     win.document.write(html); win.document.close();
 }
 
-// =========================================================================
+// 
 // 7. MÁSCARAS E EVENTOS DE INICIALIZAÇÃO
-// =========================================================================
+// 
 const phoneField = document.getElementById('phone-field');
 if (phoneField) {
     phoneField.addEventListener('input', (e) => {
@@ -447,5 +479,35 @@ if (phoneField) {
         e.target.value = formatted;
     });
 }
+// Puxa os dados da tabela para os inputs e altera o texto do botão salvar
+window.prepararEdicaoCliente = function(index) {
+    indexClienteEdicao = index;
+    const cliente = clientes[index];
 
+    // Preenche os campos do formulário HTML usando os IDs corretos
+    document.getElementById('cliente-nome').value = cliente.nome;
+    document.getElementById('phone-field').value = cliente.telefone;
+    document.getElementById('cliente-endereco').value = cliente.endereco;
+    document.getElementById('cliente-email').value = cliente.email === 'Não informado' ? '' : cliente.email;
+
+    // Altera o texto do botão principal para avisar que está editando
+    const btnSalvar = document.getElementById('btn-salvar-cliente');
+    if (btnSalvar) {
+        btnSalvar.innerHTML = `<i class="fa-solid fa-check"></i> Atualizar Cliente`;
+        btnSalvar.style.background = '#d97706'; // Muda para tom laranja/laranja escuro de edição
+    }
+    
+    // Rola a tela suavemente para cima até o formulário
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Reseta o modo de edição quando o formulário for limpo
+window.cancelarEdicaoCliente = function() {
+    indexClienteEdicao = null;
+    const btnSalvar = document.getElementById('btn-salvar-cliente');
+    if (btnSalvar) {
+        btnSalvar.innerHTML = `<i class="fa-solid fa-check"></i> Salvar Cliente`;
+        btnSalvar.style.background = '#2563eb'; // Volta para o azul padrão
+    }
+}
 window.addEventListener('DOMContentLoaded', identificarECarregarPaginaAtual);
